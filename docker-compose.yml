@@ -1,0 +1,54 @@
+services:
+  vite:
+    build:
+      context: .
+      dockerfile: ./vite/Dockerfile
+    tty: true
+    stdin_open: true
+    working_dir: /examen
+    user: "1000:1000"
+    # pongo el usuario para poder editar los archivos desde el IDE
+    ports:
+      - "9000:5173"
+    volumes:
+      - ./vite/proyect:/examen
+    command: ["sh", "-c", "npm run start"]
+
+  nginx1:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/web:/usr/share/nginx/html
+
+  nginx2:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx2:/etc/nginx
+    depends_on:
+      - nginx1
+
+  optimizer:
+    build:
+      context: .
+      dockerfile: ./optimizator/Dockerfile
+    tty: true
+    stdin_open: true
+    working_dir: /app
+    volumes:
+      - ./media:/app/src
+
+  vanilla:
+    build:
+      context: .
+      dockerfile: ./vanilla/Dockerfile
+    tty: true
+    stdin_open: true
+    working_dir: /app
+    volumes:
+      - ./vanilla/template-ssr-vanilla:/app
+    ports:
+      - "99:5173"
+    command: ["sh", "-c", "npm run build && npm run dev"]
